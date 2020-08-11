@@ -1,0 +1,709 @@
+\documentclass[11pt]{article}
+
+
+\usepackage{amssymb, amsmath, verbatim, amsthm,url, multirow,fullpage,mathtools, appendix}
+\usepackage{longtable, rotating,makecell,array}
+\usepackage[aligntableaux=top]{ytableau}
+
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1.5ex plus 0.5ex minus 0.2ex}
+
+
+%***************************
+%Frontmatter Table of contents
+%***************************
+% Annotations
+%xypic packages
+%WLD tkx program
+%Useful numeric rings and fields
+%Other useful mathematical operations and functions
+%Equation display shortcuts
+%Shortcuts for frequently used special characters
+%Theorem environments
+%***************************
+
+%*****************
+% Annotations
+\usepackage{soul}
+\usepackage[colorinlistoftodos,textsize=footnotesize]{todonotes}
+\newcommand{\hlfix}[2]{\texthl{#1}\todo{#2}}
+\newcommand{\hlnew}[2]{\texthl{#1}\todo[color=green!40]{#2}}
+\newcommand{\sanote}{\todo[color=violet!30]}
+\newcommand{\note}{\todo[color=green!40]}
+\newcommand{\newstart}{\note{The inserted text starts here}}
+\newcommand{\newfinish}{\note{The inserted text finishes here}}
+\setstcolor{red}
+%***************************
+
+
+%*****************
+%xypic packages
+\usepackage[all]{xy}
+\xyoption{poly}
+\xyoption{arc}
+%*****************
+
+%*****************
+%%% WLD drawing 
+
+\usetikzlibrary{calc} 
+\usetikzlibrary{decorations.pathmorphing} % to get the wiggly propagator lines
+\usetikzlibrary{bending} % to fix the arrow tips on bent lines
+\usetikzlibrary{patterns} % for shading the Le diagrams in section 4
+
+\newcommand{\leplus}{\Large $+$}
+\newcommand{\lezero}{\Large $0$}
+
+\newcommand{\leplusbold}[1][black]{%
+  \tikz\draw[#1,line width=1.5pt,scale = 0.35,line cap = round] (0,0) -- (1,0)(0.5,0.5) -- (0.5,-0.5);
+}
+
+
+\definecolor{light-gray}{gray}{0.6}
+
+% some propagator styles
+\tikzstyle{propagator}=[decorate,decoration={snake,amplitude=0.8mm}]
+\tikzstyle{smallpropagator}=[decorate,decoration={snake,segment length=3mm,amplitude=0.5mm}]
+
+% for highlighting regions of a diagram edge
+\tikzstyle{linehighlight}=[blue,line width = 3pt,line cap = round, draw opacity = 0.5]
+
+% these two for drawing partial propagators
+\tikzstyle{firstdash}=[dashed,line cap=round, dash pattern=on 2pt off 1pt]
+\tikzstyle{seconddash}=[dashed,line cap=round, dash pattern=on 0.5pt off 1pt]
+\tikzstyle{smalldash}=[dashed,line cap=round, dash pattern=on 1.5pt off 2pt]
+
+
+ % used for showing which propagator assigns to which vertex in the last section
+\pgfmathsetmacro{\arrowangle}{90}
+\tikzstyle{propassignment} = [->,shorten >=2pt,thick]
+
+
+% to draw a (full) WLD; \drawWLD{8}{2} is a circle of radius 2 with 8 marked points
+\newcommand{\drawWLD}[2]{
+
+\pgfmathsetmacro{\n}{#1}
+\pgfmathsetmacro{\radius}{#2}
+\pgfmathsetmacro{\angle}{360/\n}
+\draw (0,0) circle (\radius);
+    \foreach \i in {1,2,...,\n} {
+      \draw (\angle*\i:\radius) node {$\bullet$};
+       %\pgfmathsetmacro{\x}{\angle*\i}
+       %\draw[-,shorten >=-\radius*0.1 cm,shorten <=-\radius*0.1 cm]  (\x:\radius cm)-- (\x + \angle: \radius cm);
+    }
+
+}
+
+% as above, but draws the outer edge of the polygon partition instead
+\newcommand{\drawpolypart}[2]{
+\pgfmathsetmacro{\n}{#1}
+\pgfmathsetmacro{\radius}{#2}
+\pgfmathsetmacro{\angle}{360/\n}
+    \foreach \i in {1,2,...,\n} {
+      \draw (\angle*\i+ \angle/2:\radius) node {$\bullet$};
+     \pgfmathsetmacro{\x}{\angle*\i - \angle/2}
+      \pgfmathsetmacro{\concave}{((\n-1.5)/\n)}
+      \draw (\x:\radius cm) .. controls (\angle *\i: \concave* \radius cm) .. (\x + \angle:\radius cm);
+      %\draw (\angle *\i: .8* \radius cm) node {$\bullet$};
+    }
+
+}
+
+
+% to draw a propagator in a WLD: \drawprop{a}{b}{c}{d} draws a prop from edge a (offset by b from the centre of the edge)
+% to edge c (offset by d from the centre)
+\newcommand{\drawprop}[4]{
+\pgfmathsetmacro{\r}{#1}
+\pgfmathsetmacro{\bumpr}{#2}
+\pgfmathsetmacro{\s}{#3}
+\pgfmathsetmacro{\bumps}{#4}
+\pgfmathsetmacro{\perturbe}{\angle/\n}
+\begin{scope}
+%\clip (\angle*\r:\radius) -- (\angle + \angle*\r:\radius) -- (\angle*\s:\radius) -- (\angle + \angle*\s:\radius) -- (\angle*\r:\radius);
+\draw[smallpropagator] (\angle*\r + \angle/2 + \bumpr*\perturbe:\radius) -- (\angle*\s + \angle/2 + \bumps*\perturbe:\radius);
+\end{scope}
+}
+
+
+% to draw an arced propagator in a WLD: \drawprop{a}{b}{c}{d}{e} draws a prop from edge a (offset by b from the centre of the edge)
+% to edge c (offset by d from the centre), bending at angle e
+\newcommand{\drawpropbend}[5]{
+\pgfmathsetmacro{\r}{#1}
+\pgfmathsetmacro{\bumpr}{#2}
+\pgfmathsetmacro{\s}{#3}
+\pgfmathsetmacro{\bumps}{#4}
+\pgfmathsetmacro{\perturbe}{\angle/\n}
+\begin{scope}
+%\clip (\angle*\r:\radius) -- (\angle + \angle*\r:\radius) -- (\angle*\s:\radius) -- (\angle + \angle*\s:\radius) -- (\angle*\r:\radius);
+\draw[smallpropagator] (\angle*\r + \angle/2 + \bumpr*\perturbe:\radius) to[bend left = #5](\angle*\s + \angle/2 + \bumps*\perturbe:\radius);
+\end{scope}
+}
+
+
+
+% as above but the 5th argument labels the prop (must include formatting, $ signs, etc)
+\newcommand{\drawlabeledprop}[5]{
+\pgfmathsetmacro{\r}{#1}
+\pgfmathsetmacro{\bumpr}{#2}
+\pgfmathsetmacro{\s}{#3}
+\pgfmathsetmacro{\bumps}{#4}
+\pgfmathsetmacro{\perturbe}{\angle/\n}
+
+\begin{scope}
+%\clip (\angle*\r:\radius) -- (\angle + \angle*\r:\radius) -- (\angle*\s:\radius) -- (\angle + \angle*\s:\radius) -- (\angle*\r:\radius);
+\draw[smallpropagator] (\angle*\r + \angle/2 + \bumpr*\perturbe:\radius) -- (\angle*\s + \angle/2 + \bumps*\perturbe:\radius) node[midway, below] {#5};
+\end{scope}
+}
+
+% \drawchord{a}{b} draws a straight line from vertex a to vertex b in the polygon partition
+\newcommand{\drawchord}[2]{
+\pgfmathsetmacro{\r}{#1}
+\pgfmathsetmacro{\s}{#2}
+
+\begin{scope}
+%\clip (\angle*\r:\radius) -- (\angle + \angle*\r:\radius) -- (\angle*\s:\radius) -- (\angle + \angle*\s:\radius) -- (\angle*\r:\radius);
+\draw (\angle*\r + \angle/2:\radius) -- (\angle*\s + \angle/2:\radius);
+\end{scope}
+}
+
+
+% for anything that requires modifying the propagator, e.g. colour, different amplitude,etc
+% 5th argument should be {propagator,<other stuff>} or {smallpropagator,<otherstuff>} otherwise you'll get a straight line
+\newcommand{\modifiedprop}[5]{
+\pgfmathsetmacro{\r}{#1}
+\pgfmathsetmacro{\bumpr}{#2}
+\pgfmathsetmacro{\s}{#3}
+\pgfmathsetmacro{\bumps}{#4}
+\pgfmathsetmacro{\perturbe}{\angle/\n}
+
+\begin{scope}
+\clip (\angle*\r:\radius) -- (\angle + \angle*\r:\radius) -- (\angle*\s:\radius) -- (\angle + \angle*\s:\radius) -- (\angle*\r:\radius);
+\draw[#5] (\angle*\r + \angle/2 + \bumpr*\perturbe:\radius) -- (\angle*\s + \angle/2 + \bumps*\perturbe:\radius);
+\end{scope}
+}
+
+
+\newcommand{\boundaryprop}[4]{
+\pgfmathsetmacro{\r}{#1}
+\pgfmathsetmacro{\bumpr}{#2}
+\pgfmathsetmacro{\s}{#3}
+\pgfmathsetmacro{\perturbe}{\angle/\n}
+
+\begin{scope}
+\clip (\angle*\r:\radius) -- (\angle + \angle*\r:\radius) -- (\angle*\s - \angle:\radius) -- (\angle*\s:\radius) -- (\angle + \angle*\s:\radius) -- (\angle*\r:\radius);
+\draw[#4] (\angle*\r + \angle/2 + \bumpr*\perturbe:\radius) -- (\angle*\s:\radius);
+\end{scope}
+	
+}
+
+\newcommand{\drawnumbers}{
+  \foreach \i in {1,2,...,\n} {
+  \pgfmathsetmacro{\x}{\angle*\i}
+  \draw (\x:\radius*1.25) node {\footnotesize \i};
+}
+}
+
+\newcommand{\drawnumbersshift}{
+  \foreach \i in {1,2,...,\n} {
+  \pgfmathsetmacro{\x}{\angle*\i + \angle/2}
+  \draw (\x:\radius*1.15) node {\footnotesize \i};
+}
+}
+
+
+
+
+%%%%%%%
+% Drawing partial WLD
+%%%%%%%
+\def\centerarc[#1](#2)(#3:#4:#5)% Syntax: [draw options] (center) (initial angle:final angle:radius)
+    { \draw[#1] ($(#2)+({#5*cos(#3)},{#5*sin(#3)})$) arc (#3:#4:#5); }
+
+\def\clipcenterarc(#1)(#2:#3:#4)% Syntax: [draw options] (center) (initial angle:final angle:radius)
+    { \clip ($(#1)+({#4*cos(#2)},{#4*sin(#2)})$) arc (#2:#3:#4); }
+
+
+%\drawWLDfragment[number of nodes, default = 10]{radius}{fraction of circle to be displayed}
+% unlike \drawWLD above, nodes are not marked by default, use \newnode below 
+\newcommand{\drawWLDfragment}[3][10]{
+\pgfmathsetmacro{\n}{#1} % use this to get consistent spacing between nodes
+\pgfmathsetmacro{\radius}{#2}
+\pgfmathsetmacro{\fragment}{#3} % between 0 and 1, gets you that percentage of a circle
+\pgfmathsetmacro{\halfangle}{360*\fragment/2}
+\pgfmathsetmacro{\startpoint}{270 - \halfangle}
+\pgfmathsetmacro{\endpoint}{270 + \halfangle}
+\pgfmathsetmacro{\step}{2*\halfangle/\n} 
+\pgfmathsetmacro{\zero}{\startpoint-0.5*\step} % so node i is at angle \zero + i*\step
+\centerarc[black](0,0)(\startpoint:\endpoint:\radius)
+}
+
+
+% puts numbers on the partialWLD; only really useful for debugging
+\newcommand{\drawnumberspartial}{
+\node (0,0) {$\bullet$};
+  \foreach \i in {1,2,...,\n} {
+  \pgfmathsetmacro{\x}{\step*\i}
+  \draw (\zero + \x:\radius*1.15) node {\footnotesize \i};
+}
+}
+
+
+% \newnode[location]{b}{c} puts a dot on the node at position b, with label c. location = left by default
+\newcommand{\newnode}[3][left]{
+  \node[label={[label distance=-1mm]#1:{\scriptsize $#3$}}] at (\zero + #2*\step:\radius) {\scriptsize $\bullet$};
+  %\node[#1] at (\zero + #2*\step:\radius) {\scriptsize $#3$};
+}
+
+% messier but more flexible: use when you want more control over label placement
+
+\newcommand{\newbetternode}[3][{label distance=-1mm]left}]{
+  \node[label={#1:{\scriptsize $#3$}}] at (\zero + #2*\step:\radius) {\scriptsize $\bullet$};
+  %\node[#1] at (\zero + #2*\step:\radius) {\scriptsize $#3$};
+}
+
+
+
+% \newprop[label position]{start node}{end node}{label}; for \partialWLD only
+\newcommand{\newprop}[4][midway,below]{
+\pgfmathsetmacro{\startnode}{#2}
+\pgfmathsetmacro{\endnode}{#3}
+
+\draw[smallpropagator] (\zero+\startnode*\step:\radius) -- (\zero + \endnode*\step:\radius) node[#1] {#4};
+}
+
+
+% as above but with a bend in it; \newpropbend{startnode}{endnode}{bend in degrees}
+% note that the propagator extends past the edge of the diagram: always use this in a scope with \clipcenterarc (above)
+\newcommand{\newpropbend}[3]{
+\draw[smallpropagator] (\zero+#1*\step:\radius*1.1) to[bend left = #3] (\zero + #2*\step:\radius*1.1);
+}
+
+%%%%%%%%%%%%%%
+
+
+
+%*****************
+
+%*****************
+%Useful numeric rings and fields
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\RP}{\mathbb{R}\mathbb{P}}
+\newcommand{\id}{\mathbb{I}}
+\newcommand{\Gr}{\mathbb{G}_{\R, \geq 0}}
+\newcommand{\Grtnn}{\mathbb{G}_{\R, +}}
+\newcommand{\Grall}{\mathbb{G}_{\R}}
+\newcommand{\CW}{\overline{\mathcal{W}}} % CW complex of W(k,n)
+\newcommand{\BW}{\widehat{\mathcal{W}}} % complex minus bald spots
+%*****************
+
+
+%*****************
+%Other useful mathematical operations and functions
+\newcommand{\D}{\partial}
+\newcommand{\rk}{\textrm{rk }}
+\newcommand{\spn}{\textrm{span }}
+\newcommand{\rd}{\textrm{d}}
+\newcommand{\Res}{\textrm{Res}}
+%*****************
+
+
+%*****************
+%Equation display shortcuts
+\def\ba #1\ea{\begin{align} #1 \end{align}}
+\def\bas #1\eas{\begin{align*} #1 \end{align*}}
+\def\bml #1\eml{\begin{multline} #1 \end{multline}}
+\def\bmls #1\emls{\begin{multline*} #1 \end{multline*}}
+%*****************
+
+
+%*****************
+%Shortcuts for frequently used special characters
+\newcommand{\fB}{\mathfrak{B}}
+\newcommand{\cP}{\mathcal{P}}
+\newcommand{\fZ}{\mathfrak{Z}}
+\newcommand{\cM}{\mathcal{M}}
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cI}{\mathcal{I}}
+\newcommand{\cC}{\mathcal{C}}
+\newcommand{\cB}{\mathcal{B}}
+\newcommand{\G}{\mathbb{G}}
+\newcommand{\Prop}{\textrm{Prop}}
+\newcommand{\cW}{\mathcal{W}}
+\newcommand{\bM}{\mathbb{M}}
+\newcommand{\cZ}{\mathcal{Z}}
+\newcommand{\cY}{\mathcal{Y}}
+\newcommand{\Dom}{\textrm{Dom}}
+\newcommand{\detzr}[1] {\langle (\cZ_*^\mu|V(p))^{#1} \rangle}
+\newcommand{\II}{\mathcal{I}}
+\newcommand{\BB}{\mathcal{B}}
+\newcommand{\CS}{\mathcal{S}}
+\newcommand{\interval}[2]{[\![#1,#2]\!]}
+\newcommand{\gale}[1]{\preccurlyeq_{#1}}
+\newcommand{\sgale}[1]{\prex_{#1}}
+\renewcommand\vec[1]{\overrightarrow{#1}}
+\newcommand\cev[1]{\overleftarrow{#1}}
+%*****************
+
+%*****************
+%Theorem environments
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{conj}[thm]{Conjecture}
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{algorithm}[thm]{Algorithm}
+
+
+\theoremstyle{remark}
+\newtheorem{eg}[thm]{Example}
+\newtheorem{claim}[thm]{Claim}
+
+\theoremstyle{definition}
+\newtheorem{dfn}[thm]{Definition}
+\newtheorem{rmk}[thm]{Remark}
+\newtheorem{ntn}[thm]{Notation}
+%*****************
+
+
+
+
+\title{Cancellation of spurious poles in N=4 SYM: an alternative to Brexit}
+\author{Susama Agarwala, Cameron Marcott}
+%\date{}
+
+
+\begin{document}
+\maketitle
+\section{Introduction}
+
+\section{Background}
+
+\subsection{Diagramatics and matroids \label{sec:diagramdefs}}
+A Wilson loop diagram $W = (\cP, [n])$ consists of a cyclically ordered set $[n] = \{1, \cdots, n\}$ and a set of propagators $\cP = \{(i,j) | i, j \in [n]\}$ as an unordered pair of integers. We depict these diagrams by drawing the set $[n]$ as vertices on a circle. The $i^{th}$ edge of the marked circle is the edge between the vertices $i$ and $i+1$. Then the propagator $p =(i,j)$ is depicted as a wavy line on the interior of the circle connecting the $i^{th}$ edge to the $j^{th}$ edge. In this manner, we say that the propagator $p$ is supported by the vertices $V_p = \{i, i+1, j, j+1\}$, as these are the vertices bounding the edges that $p$ ends on. 
+
+More generally, for a subset of propagators $P \subset \cP$, we write $V_P = \cup_{p \in P} V_p$ to indicate the set of vertices supporting the propagator set $P$. For any $V \subset [n]$, the wet of propagators supported by $V$ is written $\Prop(V) = \{ p \in \cP | V_p \cap V \neq \emptyset\}$. 
+
+For example, we draw $W = (\{(3,5), (1,7)\}, [8])$ as \bas W\ =\ \begin{tikzpicture}[rotate=67.5,baseline=(current bounding box.east)]
+	\begin{scope}
+	\drawWLD{8}{1.5}
+	\drawnumbers
+	\drawprop{1}{0}{7}{0}
+	\drawprop{3}{0}{5}{-1}
+        \drawprop{2}{0}{5}{1}
+		\end{scope}
+	\end{tikzpicture}\eas and $W' = (\{(1,4), (3,5), (6,7), (8,1), (8,1)\}, [8])$ as \bas W'\ =\ \begin{tikzpicture}[rotate=67.5,baseline=(current bounding box.east)]
+	\begin{scope}
+	\drawWLD{10}{1.5}
+	\drawnumbers
+	\drawprop{1}{0}{4}{0}
+	\drawprop{3}{0}{5}{0}
+        \drawpropbend{6}{0}{7}{0}{35}
+	\drawprop{8}{1}{10}{-1}
+ 	\drawprop{8}{-2}{10}{2}
+		\end{scope}
+	\end{tikzpicture}\;.\eas 
+Note that the pairs indicating the propagators are unorderer. That is if the propagator $p$ ends on the third and fifth edges, we may write $p = (3,5)$ or $p(5,3)$. In this paper, we use the convention that $p = (i, j)$, with $i$ preceeding $j$ in the natural linear order on $[n]$: $i < j$. Furthermore, we use the convention that if two propagators have endpoints on the same edge, they are drawn so that they do not cross. 
+
+In the physics literature, we are only intersted in a certain subclass of these graphs, called admissible Wilson loop diagrams. An \emph{admissible} Wilson loop diagram, $W = (\cP, [n])$ satisfies the following conditions:
+\begin{enumerate}
+\item \textbf{Non-crossing} No pair of propagators $p, q \in \cP$ cross in the interior of $W$. That is, if $p = (i,j), \; q = (k, l) \in \cP$ written such that if $i < k$ then $l <j$. 
+\item \textbf{Local Density} Any subset of propagators $ P \subset \cP$ is supported by at least 3 more vertices than the number of propagators in $P$: $|V_P| \geq |P| + 3$. 
+\item \textbf{Global Density} There are at least 4 more vertices in the diagram than there are propagators. That is $n \geq |\cP| + 4$.
+\end{enumerate} 
+
+Note that the diagram $W$ above is admissible, while $W'$ is not. Furthermore, note that local density implies that one cannot have a propagators $p = (i, i+1)$ or pairs of propagators with the same endpoints: $p = q = (i, j)$.
+
+For the remainder of this paper, we restrict our attention only to admissible Wilson loop diagrams.
+
+In \cite{Wilsonloop} the authors show that each admissible Wilson loop diagram is assoicated to a positroid, $M(W)$, or a matroid that can be represented by a matroid, with a base set $[n]$. A subset $V \in [n]$ is not independent if and only if it contains a subset $U \subset V$ such that $|\Prop (U)| \leq |U|$ (thm \cite{??}). \todo{make result?} For instance, in $W$ above, the vertices $\{7,8\}$ are not independent since they only support one propagator between them. Therefore, no set of vertices containing $\{7, 8\}$ can be independent either. On the other hand, the vertices $\{3,4\}$ support two propagators, and thus are independent. The set $\{3,4, 5\}$ are three vertices supporting 2 propagators, and thus not independent. However, $\{2, 3, 4\}$ is a set of three vertices supporting 3 propagators, and is thus independent.
+
+Furthermore, by virtue of the non-crossing restriction, the Wilson loop diagrams represent positroids (\cite[]). In other words, admissible Wilson loop diagrams can be represented by real valued matrices with all positive maximal minors.
+
+\subsection{Matrices and positroids\label{sec:matrixdefs}}
+
+Wilson loop diagrams have a natural matrix representation that bridges the combinatorics to geometric subspaces of the positive Grassmannians, which we discuss next.
+
+For each propagator $p \subset \cP$ in admissible Wilson loop diagram, $W = (\cP, [n])$, associate a $4$ dimensional subspace of $\RP^{n+1}$ of the form \bas Y_p = \begin{cases}  c_{p,i} &  i = 0 \textrm{ or } i \in V_p \\ 0 &  \textrm{else,}\end{cases} \eas where $c_{p,i}$ are real valued variables. Then one may associated to $W$ a subspace of $\Grall(k, n+1)$ parametrized by the $Y_p$. That is, given the Wilson loop diagram $W$ above, with $p = (1,7)$, $q = (3,5)$ and $r = (2,5)$, one may write \bas C_*(W) = \begin{bmatrix} c_{p,0} & c_{p,1} & c_{p,2} & 0 &0 &0 &0 &c_{p,7} & c_{p,8} \\  c_{q,0} & 0 & 0 &c_{q,3} & c_{q,4} &  c_{q,5} & c_{q,6} & 0 & 0 \\ c_{r,0} & 0 & c_{r,2} & c_{r,3} & 0  &c_{r,5} & c_{r,6} & 0 &0\end{bmatrix}\eas
+
+We define the matrix $C(W)$ to be the one defined by ignoring the first column of $C_*(W)$.  In the running example, \bas C(W) = \begin{bmatrix}  c_{p,1} & c_{p,2} & 0 &0 &0 &0 &c_{p,7} & c_{p,8} \\    0 & 0 &c_{q,3} & c_{q,4} &  c_{q,5} & c_{q,6} & 0 & 0 \\  0 & c_{r,2} & c_{r,3} & 0  &c_{r,5} & c_{r,6} & 0 &0\end{bmatrix}\eas
+
+\begin{rmk}
+Note that, as a subspace of $\Grall(k, n)$ (resp. $\Grall(k, n+1)$), or ordering of the rows in $C(W)$, resp. $C_*(W)$ do not matter.
+\end{rmk}
+
+
+The matroidal properties of Wilson loop diagrams derived in \cite{Wilsonloops} \todo{cite result?} can be verified by considering the independent columns of $C(W)$. The fact that as matroids, these are positroids indicates that there exist values for the entries of $C(W)$ such that the resulting matrix has positive maximal minors. That is, that the subspace of $\Grall(k,n)$ parametrized by $C(W)$ intersects $\Gr(k,n)$. In particular, it intersects the corresponding positroid cell inside $\Gr(k,n)$. \sanote{I don't want to go into a long discussion of what a positroid cell is, or how they tile the positive Grassmannians. On the other hand, it is necessary for a discussion of poles. Any ideas of how/where to put it in?} Let \hlfix{$G(W)$}{Cameron, do you have a name you like for this?} be the subspace of $\Gr(k,n)$ parametrized by $C(W)$. The author of \cite{basisshapeloci} shows that each $G(W)$ parametrizes dense subset of a $3k$ dimensional positroid cell, $\Sigma(W)$. In particular, the closures of each space are identical: $\overline{G(W)\cap \Gr(k,n)} = \overline{\Sigma(W)}$. 
+
+We have now constructed a map from Wilson loop diagrams to the positroid cells. Let $\cW_{k,n}$ be the set of all admissible Wilson loop diagrams with $k$ propagators and $n$ vertices. Then \bas \cW_{k,n} \leftrightarrow (\RP^4 )^{\times k} \hookrightarrow (\RP^n )^{\times k} \rightarrow G(W)  \;.\eas
+
+{\color{red}  I want to say something here about the last map being neither surjective nor injective. I think this comes mostly from the result that most WLDs map to different positroids, so therefore, they must map to different subspaces of $\Grall{k,n}$. However, exact diagrams map to different parametrizations of the same space. The reason I'm making a big deal of it here is that the integrals that we discuss below are all over $\RP^4$, but we talk about the geometry of $\Gr(k,n)$, and the fact that one goes cleanly into another is not at all clear to me. I'd love your input on this.}
+
+\subsection{Integrals and poles \label{sec:integrals}}
+
+The Wilson loop diagrams represent the tree level contributions to the scattering amplitudes in the physical theory N=4 SYM. The holomorphic Wilson loop for $n$ particles and $k$ propagators gives the contribution to the n particle scattering amplitude of N=4 SYM by $k$ propagators. The tree level contribution to this amplitude is given by a sum of integrals associated to admissible Wilson loop diagrams: \bas \cA_{k,n}^{tree} = \sum_{W \subset \cW} I(W) \;.\eas The scattering amplitude is a functional on the particles of the theory, represented in twistor space. In this case, the external data are represented as $n$ sections of a $k$ dimensional real vector bundle over a real twistor space, $\{Z_1, \ldots, Z_n\}$  such that the $n \times n+4$ matrix who's $i^{th}$ row is $Z_i$ has positive maximal minors. Furthemore, we fix a guage section, $Z_0$, which can be taken, without loss of generality to be a $0$ section. We define the matrices \bas \cZ = \begin{bmatrix} - & Z_1& - \\ & \vdots &  \\ - & Z_n& -\end{bmatrix} \; ; \; \cZ_* = \begin{bmatrix}- & Z_0& - \\  - & Z_1& - \\ & \vdots & \\  - & Z_n& -\end{bmatrix} \; .\eas By the above, $\cZ$ has positive maximal minors. 
+
+We are now ready to define the integrals assoicated to each Wilson loop diagram $W = (\cP, [n])$, with $k = |\cP|$:
+
+\begin{dfn} \label{dfn:I(W)} \bas \cI(W) (\cZ_*)  = \int_{(\RP^4)^k} \frac{\prod_{p \in \cP} \prod_{v \in V_p} dc_{p, v}}{R(W)} \delta^{4k|4k}(C_*(W) \cdot \cZ_*) \eas where, for $X$ a $k \times n+4$ matrix, \bas \delta^{4k|4k}(X) = \prod_{b =1}^k (X_{b, 4+b})^4\delta^4((X_{b,1},X_{b,2},X_{b,3},X_{b,4}))  \eas and $R(W)$ is a polynomial determined from the $W$ as follows: 
+\begin{enumerate}
+\item For each edge $e \in [n]$, let $\{q_1, \ldots, q_s \}$ be the propagators incident on the edge $e$. 
+\item Define $R_e = c_{q_1, e} \big(\prod_{r = 1}^{s-1} (c_{q_r, e+1}c_{q_{r+1}, e+1} - c_{q_r, e+1}c_{q_{r+1}, e})\big) c_{q_s, e}$
+\item $R(W) = \prod_{e \in [n]} R_e$
+\end{enumerate} \end{dfn}
+
+\begin{dfn}
+We say that $q_i$ and $q_{i+1}$ are adjascent on the edge $e$.
+\end{dfn}
+
+In \cite{generalcombinatoricsII}, we show that $R(W)$ is exactly the product of the prime factors of the determinants of $C(W)$ defined by the Grassmann necklace of $M(W)$. In combination with the results of \cite{basisshapeloci}, we show that 
+
+\begin{prop}
+All the factors of $R(W)$ vanish on the boundary of $\Sigma(W)$.
+\end{prop}
+
+\begin{proof}
+Cameron, take it away.
+\end{proof}
+
+This fact has been shown explicity in the case of $n = 4$ and $k=2$, however, has not been shown in general.
+
+{\color{red} We should say something here about the non-orientability result? Definitely something about all the boundary cancelation calculation are being done on a section of the bundle in $\Grall(k, n+1)$ as identified in \cite{non-orientable}.}
+
+\section{The poles of Wilson loop diagrams}
+
+\subsection{Cluster algebras, frozen variables, Grassman Necklaces}
+
+This (unfortunately) has little to do with this paper, but we should probably speak to this.
+
+\begin{lem}
+We can read the backwards GN off the diagram by reversing direction. {\color{red} do we need this?}
+\end{lem}
+
+\begin{thm}
+Result about forward and backwards Grassman Necklaces. \sanote{Does this need a proof that one can read the backwords GN off the diagram? Not sure if we need that proof or not.}
+\end{thm}
+
+Maybe say something about parametrizing w.r.t. matrix entries vs. Plucker coordinates? Don't know what?
+
+\begin{thm}
+If a WLD does not have a non-trivial exact subdiagram, then $C(W)$ is its unique  minimal representation. {\color{red} Again, do we need this?}
+\end{thm}
+
+\subsection{Geometry of the poles}
+
+Note that not every co-dimension one boundary of a $\Sigma(W)$ do not contain a factor of $R(W)$. Also note that this example occurs in a situation where there isn't another minimal parametrization of the cell.
+
+\begin{eg}
+Show boundaries of $\Sigma(V_i)$ and the factors of $R(V_i)$.
+\end{eg}
+
+\begin{thm}
+For $W$ admissible WLD, the codimension 1 boundaries of $G(W)$ formed by setting factors of $R(W)$ to 0 are dense in the codimension 1 boundaries of $\Sigma(W)$. \sanote{I'm certain I'm saying this wrong}
+\end{thm}
+
+\begin{thm}
+All the codimension 1 poles of admissible Wilson loop diagrams cancel.
+\end{thm}
+
+\begin{proof}
+By construction, the primitive factors of $R(W)$ either correspond to $1 \times 1$ or $2 \times 2$ minors of $C(W)$. Infact, by construction, setting a $1 \times 1$ minor to zero corresponds to, in the notaton of definition \ref{dfn:I(W)}, setting $c_{q_1, e+1} = 0$ or $c_{q_s, e} = 0$. We depict this diagramatically as (for $e = 8$) \bas   \begin{tikzpicture}[rotate=67.5,baseline=(current bounding box.east)]
+	\begin{scope}
+	\drawWLD{10}{1.5}
+	\drawnumbers
+	\boundaryprop{1}{0}{9}{propagator, dashed}
+	\drawprop{3}{0}{8}{0}
+        \drawprop{5}{0}{8}{-1}
+		\end{scope}
+	\end{tikzpicture} \text{ or } \begin{tikzpicture}[rotate=67.5,baseline=(current bounding box.east)]
+	\begin{scope}
+	\drawWLD{10}{1.5}
+	\drawnumbers
+	\drawprop{1}{0}{8}{1}
+	\drawprop{3}{0}{8}{0}
+        \boundaryprop{5}{0}{8}{propagator, dashed}
+		\end{scope}
+	\end{tikzpicture} \;.\eas That is, a setting a $1\times 1$ minor to zero can be depicted by supporting a single propagator on the remaining three vertices. Similarly, the $2 \times 2$ minors correspond to setting two of the variables supporting adjasacent propagators as scalar multiples of each other. In the same example, we draw this as \bas   \begin{tikzpicture}[rotate=67.5,baseline=(current bounding box.east)]
+	\begin{scope}
+	\drawWLD{10}{1.5}
+	\drawnumbers
+	\modifiedprop{1}{0}{8}{2}{propagator, dashed}
+	\modifiedprop{3}{0}{8}{2}{propagator, dashed}
+        \drawprop{5}{0}{8}{-1}
+		\end{scope}
+	\end{tikzpicture} \;, \eas or setting a $2 \times 2$ minor is depicted by making two adjascent propagators meet on the common edge.
+
+We first consider all the possible degree 1 factors of $R(W)$. Write $W = (\cP, [n])$ with $p= (i,j)  \in \cP$. Suppose $j > i+2$ (i.e. if $V(p)$ does not consist of $4$ cyclically consecutive vertices) and, wihtout loss of generality, assume $c_{p, i}$ is a factor of $R(W)$. Then if $q = (i+1, j) \not \in \cP$ the we may define another diagram $W' = ((\cP \setminus p) \cup q, [n])$ such that $\lim_{c_{p, i} \rightarrow 0} I(W) = -\lim_{c_{q, i+2} \rightarrow 0} I(W')$, where the negative sign comes from the evaluation of $\delta^{4k|4k}$ (see Lemma \ref{lem:movingpropnegative}). For more details on the minus signs, see \cite{casestudy, HeslopSteward, correlahedron}. By the arguments of \cite{basisshapeloci}, we see that this parametrizes a co-dimension 1 boundary of $\Sigma(W)$. It is easy to check that $W'$ sasisfies both non-crossing (because $W$ satisfies non-crossing) and the density (because $q \not in \cP$, and $W$ satisfies density) conditions for admissibility. Thereofre $W'$ is admissible. 
+
+If $q \in \cP$, then, the two rows of $\lim_{c_{p, i} \rightarrow 0}C(W)$ defined by the propagators $p$ (now supported on 3 vertices) and $q$ have non-zero entries in only 4 columns. Therefore, by the arguments of \cite{basisshapeloci}, we see that this parametrizes a co-dimension 2 boundary of $\Sigma(W)$. Therefore, we do not consider these poles. 
+
+It remains to consider the degree one factors of $R(W)$ contributed by propagators of the form $p = (i, i+2)$. If $c_{p, i+1}$ or $c_{p, i+2}$ are factors of $R(W)$, then consider the propatators $q = (i-1, i+2)$ or $q = (i, i+3)$ respectively. If $q \not \in W$, then the diagram $W' = ((\cP \setminus p)\cup q, [n])$ is admissible, and the argument proceeds as above. If $c_{p, i}$ or $c_{p, i+3}$ are factors of $R(W)$, let $q = (i+1, i+3)$ or $q = (i-1, i+1)$ respectively. By the non-crossing condition, $p$ and $q$ cannot simultaneously exist in $W$. If $W$ does not contain another propagator of the form $(i+2, k)$ or $(i, k)$ respectfully, we may define an admissible diagram $W' = ((\cP \setminus p)\cup q, [n])$ (otherwise, $q$ would cross the existing propagator $(i+2, k)$ or $(i, k)$).  In this case, $\lim_{c_{p, i} \rightarrow 0} I(W) = -\lim_{c_{q, i+4} \rightarrow 0} I(W')$ where the negative sign comes from the same arguments as above. 
+
+It remains to check the case when $c_{p, i}$ (resp. $c_{p, i+3}$) is a factor of $R(W)$ and there exists a propagator $(i+2, k)$ (resp. $(i, k)$) in $W$. In this case, the simple pole formed by taking the limit as $c_{p, i}$ (resp. $c_{p, i+3}$) goes to zero cancels with a pole coming from degree 2 factors contributed by other diagrams. Therefore, we return to this during the discussion of $2 \times 2$ minors. 
+
+Next, we consider the degree 2 factors of $R(W)$. In order for such a factor to exist, there must be some edge of $W$, call it $i$, that has at least two propagators ending on it, say $p = (i, j)$ and $q = (i, k)$. Suppose $k > j+1$, that is, the other endpoints of $p$ and $q$ are not on adjascent edges. If $r = (j,k) \not \in \cP$, consider two other diagrams $W' = ((\cP \setminus p) \cup r, [n])$ and $W'' = ((\cP \setminus q) \cup r, [n])$. Since $k> j+1$ and $r \not \in \cP$, both $W'$ and $W''$ both satisfy density. Furthermore, since $W$ is admssible, and $p$ and $q$ are adjascent on the edge $i$, there does not exist a propagator $(i, m)$ with $j < m <k$, that is, that has one endpoint on the $i^{th}$ edge, and the other between the endpoints of $p$ and $q$. Therefore, $W'$ and $W''$ satisfy non-crossing. I.e, they are both admissible. \todo{still need a proof that this is a codimension 1 boundary.} We see from Lemma \ref{lem:Vdiagcancel} that after appropriate changes of parametrizations, one may write \bas \lim_{(c_{r,k}c_{q,k+1} -c_{r,k+1}c_{q,k})\rightarrow 0}I(W') +  \lim_{(c_{p,i}c_{q,i+1} -c_{p,i+1}c_{q,i})\rightarrow 0} I(W) + \lim_{(c_{p,j}c_{r,j+1} -c_{p,j+1}c_{r,j})\rightarrow 0}I(W'') = 0 \; .\eas That is, the limits represented by the following diagrams, paramterize the same codimension 1 subspace in the intersection $\Sigma(W) \cap \Sigma(W') \cap \Sigma(W'')$.  {\color{red} up to some density argument, right?} \bas \begin{tikzpicture}[rotate=67.5,baseline=(current bounding box.east)]
+	\begin{scope}
+	\drawWLD{10}{1.5}
+	\drawnumbers
+	\modifiedprop{1}{0}{8}{2}{propagator, dashed}
+	\modifiedprop{3}{0}{8}{2}{propagator, dashed}
+        \drawprop{5}{0}{8}{-1}
+		\end{scope}
+	\end{tikzpicture} \leftrightarrow \begin{tikzpicture}[rotate=67.5,baseline=(current bounding box.east)]
+	\begin{scope}
+	\drawWLD{10}{1.5}
+	\drawnumbers
+	\modifiedprop{1}{0}{8}{1}{propagator, dashed}
+	\modifiedprop{1}{0}{3}{0}{propagator, dashed}
+        \drawprop{5}{0}{8}{-1}
+		\end{scope}
+	\end{tikzpicture} \leftrightarrow \begin{tikzpicture}[rotate=67.5,baseline=(current bounding box.east)]
+	\begin{scope}
+	\drawWLD{10}{1.5}
+	\drawnumbers
+	\modifiedprop{1}{0}{3}{0}{propagator, dashed}
+	\modifiedprop{3}{0}{8}{0}{propagator, dashed}
+        \drawprop{5}{0}{8}{-1}
+		\end{scope}
+	\end{tikzpicture}\eas In otherwords, these three codimension 1 boundaries cancel in the sum of integrals tha make up the amplitude.
+
+If $k > j+1$ but the propagator $r =  (j,k) \in \cP$, then setting any of the minors $(c_{p,i}c_{q,i+1} -c_{p,i+1}c_{q,i})$, $(c_{p,j}c_{r,j+1} -c_{p,j+1}c_{r,j})$ or $(c_{r,k}c_{q,k+1} -c_{r,k+1}c_{q,k})$ to zero creates a codimension 2 boundary. \todo{Needs proof.}
+
+It remains to check the case where $k = j+1$, i.e. $W$ contains a pair of propagotors configured as below: \bas \begin{tikzpicture}[rotate=67.5,baseline=(current bounding box.east)]
+	\begin{scope}
+	\drawWLD{10}{1.5}
+	\drawnumbers
+	\drawprop{3}{0}{8}{-1}
+	\drawprop{2}{0}{8}{1}
+		\end{scope}
+	\end{tikzpicture} \eas
+
+Consider the diagrams $W' = ((\cP \setminus p) \cup r = (j, j+2), [n])$ and $W'' = ((\cP \setminus p) \cup s = (k-2, k), [n])$. Since the edge $r \not \in \cP$ (it would cross $q$ if it were), and $s \not \in \cP$ (it would cross $p$ if it were), we see that $W'$ and $W''$ satisfy both the non-crossing and density conditions, and thus are admissible. 
+
+We see from Lemma \ref{lem:narrowVcancel} that pole defined by the limit of sending $(c_{p,i}c_{q,i+1} -c_{p,i+1}c_{q,i})$ to $0$ cancels with degree 1 poles in the diagrams in $W'$ and $W''$ under the correct parametrizations: \bas \lim_{(c_{p,i}c_{q,i+1} -c_{p,i+1}c_{q,i}) \rightarrow 0}I(W) + \lim_{c_{r, k-2}\rightarrow 0}I(W') + \lim_{c_{s, j+3}\rightarrow 0}I(W'') =0 \;.\eas That is, the limits represented by the following diagrams, paramterize the same codimension 1 subspace in the intersection $\Sigma(W) \cap \Sigma(W') \cap \Sigma(W'')$. \bas \begin{tikzpicture}[rotate=67.5,baseline=(current bounding box.east)]
+	\begin{scope}
+	\drawWLD{10}{1.5}
+	\drawnumbers
+        \modifiedprop{3}{0}{8}{0}{propagator, dashed}
+	\modifiedprop{2}{0}{8}{0}{propagator, dashed}
+	\end{scope}
+	\end{tikzpicture} \leftrightarrow \begin{tikzpicture}[rotate=67.5,baseline=(current bounding box.east)]
+	\begin{scope}
+	\drawWLD{10}{1.5}
+	\drawnumbers
+        \drawprop{3}{1}{8}{0}
+	\boundaryprop{3}{-1}{2}{propagator, dashed}
+	\end{scope}
+	\end{tikzpicture} \leftrightarrow \begin{tikzpicture}[rotate=67.5,baseline=(current bounding box.east)]
+	\begin{scope}
+	\drawWLD{10}{1.5}
+	\drawnumbers
+        \drawprop{2}{-1}{8}{0}
+	\boundaryprop{2}{1}{4}{propagator, dashed}
+	\end{scope}
+	\end{tikzpicture}\eas
+
+Note that the degree one terms of $R(W)$ involved in this calculation are exactly the degree one factors whose cancelation was put off until discussion of the degree two terms.
+\end{proof}
+
+{\color{red} Worth noting that this can only be done on a section of the $\Gr(k,n)$ in the $\Grall(k, n+1)$ bundle (i.e. when whe consider $C(W)$ as the fundamental objects, and not $C_*(W)$. \cite{HeslopStewart, non-orientability} show that we cannot do this for the space in genral because of orientation issues.} 
+
+\begin{appendices} 
+\section{Graveyard of Technical Lemmas}
+In this section, we present some calculations to aid in the understanding of the cancelation of spurious poles. Many of the results here can be found in \cite{casestudy, correlahedron, HeslopStewart}. However, they are presented here for completeness.
+
+Recall from definition \ref{dfn:I(W)} that \bas \cI(W) (\cZ_*)  = \int_{(\RP^4)^k} \frac{\prod_{p \in \cP} \prod_{v \in V_p} dc_{p, v}}{R(W)} \delta^{4k|4k}(C_*(W) \cdot \cZ_*) \eas where, for $X$ a $k \times n+4$ matrix, \bas \delta^{4k|4k}(X) = \prod_{b =1}^k (X_{b, 4+b})^4\delta^4((X_{b,1},X_{b,2},X_{b,3},X_{b,4}))  \;.\eas Write $\cZ_*^i$ to indicate the $i^{th}$ column of $\cZ_*$ and $\cZ_*^\mu$ to indicate the matrix formed by taking the first 4 columns of $\cZ_*$. Then evaluating the integral $I(W)$ corresponds to localizing the expression \bas \frac{\prod_{b = 1}^k (Y_b \cdot \cZ_*^b)^4}{R(W)}\eas at the solution to $C_*(W) \cdot \cZ_*^\mu = 0$. By Cramer's rule, we see that this localization evaluates \bas c_{p, i} = \det(Z_0^\mu, Z_{i+1}^\mu, Z_{j}^\mu, Z_{j+1}^\mu ) \; ; \; c_{p, i+1} = \det( Z_{i}^\mu, Z_0^\mu, Z_{j}^\mu, Z_{j+1}^\mu ) \; \text{ etc.}\eas That is, the entry $c_{p, m}$ evaluates to the minor of $\cZ_*^\mu$ indicated by the rows in $V(p)$, with the $m^{th}$ row replaced by $Z_0^\mu$.
+
+\begin{lem} {lem:movingpropnegative}
+For two propagators $p = (i, j)$ and $q = (i, j+1)$, after localization $c_{p, j} = -c_{q, j+2}$
+\end{lem} 
+
+\begin{proof}
+By the above arguments, note that $c_{p, j} = \det(Z_i^\mu, Z_{i+1}^\mu, Z_{0}^\mu, Z_{j+1}^\mu )$ while $c_{q, j+2} = \det(Z_i^\mu, Z_{i+1}^\mu, Z_{j+1}^\mu , Z_{0}^\mu )$. Thus these two values are negatives.
+\end{proof}
+
+Sometimes, it is necessary to perform changes of variables in order to perform the cancellation of variables. For ease of caluculation, we introduce a simplifying change of variables:
+\begin{lem}\label{lem:simplifyR(W)}
+When two propagators $p = (i, j)$ and $q = (i, k)$ are adjacent on an of $W$, then there is a reparametrization under which one can replace the factor $c_{p, i+1}(c_{p, i}c_{q, i+1} - c_{p, i+1}c_{q, i})c_{q, i}$ in $R(W)$ with the product of 4 terms: $xyzw$.
+\end{lem}
+
+\begin{proof}
+We restrict our attention to the relavant $2 \times 2$ minor of $C_*(W)$, $ \begin{bmatrix} c_{p, i} & c_{p, i+1} \\ c_{q, i} & c_{q, i+1} \end{bmatrix} $,  which we can reparametrize as $ \begin{bmatrix} x & y \\ xz & zy + w \end{bmatrix} $. Then we have that \bas c_{p, i} = x \quad ; \quad  c_{p, i+1} = y \quad ; \quad c_{q, i} = z\quad  ;\quad c_{q, i+1}  = zy + w \; . \eas Furthermore, \bas dc_{p, i} = dx  \quad ; \quad dy = d c_{p, i+1}  \quad ; \quad dc_{q, i} = c_{p, i} dc_{q, i} + c_{q, i} dc_{p, i} \quad ; \quad d c_{q, i+1} = ydz + z dy + dw \;.\eas Therefore, under these changes of variables, we see that \bas \frac{dc_{p, i}\;dc_{p, i+1}\;dc_{q, i}\;dc_{q, i+1}}{c_{p, i+1}(c_{p, i}c_{q, i+1} - c_{q, i}c_{p, i+1} ) c_{q, i}}  = \frac{x dx\;dy\;dz}{y (xyz + xw - xyz)xz}\eas which simplifies to the desired result.
+\end{proof}
+
+In future, we use whichever parametrization of the $2 \times 2$ minors is convenient. The need for a change of variables comes up in two cases. The first case involves the cancelation of the $2 \times 2$ minors in following three propagator confgurations: \bmls \textrm{Config 1} = \begin{tikzpicture}[rotate=67.5,baseline=(current bounding box.east)]
+	 \begin{scope}
+	\drawWLD{10}{1.5}
+	\drawnumbers
+	\drawprop{1}{0}{8}{1}
+	\drawprop{3}{0}{8}{-1}
+		\end{scope}
+	\end{tikzpicture} \quad ; \quad \textrm{Config 2} = \begin{tikzpicture}[rotate=67.5,baseline=(current bounding box.east)]
+	\begin{scope}
+	\drawWLD{10}{1.5}
+	\drawnumbers
+	\drawprop{1}{-1}{8}{0}
+	\drawprop{1}{1}{3}{0}
+		\end{scope}
+	\end{tikzpicture} \\ \textrm{Config 3} = \begin{tikzpicture}[rotate=67.5,baseline=(current bounding box.east)]
+	\begin{scope}
+	\drawWLD{10}{1.5}
+	\drawnumbers
+	\drawprop{1}{0}{3}{-1}
+	\drawprop{3}{1}{8}{0}
+		\end{scope}
+	\end{tikzpicture}\emls 
+
+\begin{lem}
+Let $W_1$, $W_2$ and $W_3$ be admissible Wilson loop diagrams that are identical except for the fact that the diagram $W_i$ cotains the pair of propagators shown in $\textrm{Config i}$ above. Then 
+\bas \sum_{i = 1}^3 \lim_{\textrm{degree 2 factor of } R(W_i) \rightarrow 0} I(W_i) = 0\;.\eas \end{lem}
+
+This proof is also given in \cite{HeslopStewart, casestudy} but is included here for completeness.
+\begin{proof}
+Without loss of generality, write $(C_*(W_i))$ with the pertinent propagators represented in the first two rows. Then the matrices $C_*(W_i)$ are identical except for the first two rows. We write the first two rows as \bas C_*(W_1) = \begin{bmatrix}1 & \ldots & a &b &\ldots & c & d & \ldots & 0 & 0   \ldots\\  1 & \dots &  ae &be + f  & \ldots &0 & 0 & \ldots &g &h  \ldots   \end{bmatrix}  \\ C_*(W_2) = \begin{bmatrix}1 & \ldots & a' & b' &\ldots & c' & d' & \ldots & 0 & 0   \ldots\\  1 & \dots &  0 & 0  & \ldots &c'e' & d' e' + f' & \ldots &g' &h'  \ldots   \end{bmatrix} \\C_*(W_3) = \begin{bmatrix}1 & \ldots & 0 &0 &\ldots & a'' & b'' & \ldots & c''g'' & c''g'' + d''   \ldots\\  1 & \dots &  e'' & f''  & \ldots &0 & 0 & \ldots &g'' & h'' \ldots   \end{bmatrix}\;.\eas We multiple the first two rows ow $C_*(W_2)$ and $C_*(W_3)$ by elements of $GL(2)$, leaving the rest of the rows unchanged. Namely, consider the products: \bas \begin{bmatrix} 1  & 0 \\ \frac{- e'}{1-e'} & \frac{1}{1-e'} \end{bmatrix} C_*(W_2) = \begin{bmatrix}1 & \ldots & a' & b' &\ldots & c' & d' & \ldots & 0 & 0   \ldots\\  1 & \dots & \frac{-e' a'}{1- e'}  & \frac{-e' b'}{1- e'}  & \ldots &0 & \frac{ f'}{1-e'} & \ldots &\frac{g'}{1-e'} &\frac{h'}{1-e'}  \ldots   \end{bmatrix}  \\ \begin{bmatrix}  \frac{1}{1-c''} & \frac{-c''}{1-c''}\\ 0  & 1  \end{bmatrix} C_*(W_3) = \begin{bmatrix}1 & \ldots & \frac{-e''c''}{1-c''} &\frac{-f''c''}{1-c''} &\ldots & a'' & b'' & \ldots & 0 & \frac{d''}{1-c''}   \ldots\\  1 & \dots &  e'' & f''  & \ldots &\frac{a''}{1-c''} & \frac{b''}{1-c''} & \ldots &g'' & h'' \ldots   \end{bmatrix}\;.\eas
+From this, we see that, in the limit $f \rightarrow 0$ and $f' \rightarrow 0$, for $C_*(W_2)$, we have the change of variables \bas a = a' \quad ; \quad b = b' \quad ; \quad c = c' \quad ; \quad d = d' \quad ; \quad e = \frac{-e'}{1-e'}\quad ; \quad g = \frac{g'}{1-e'} \quad ; \quad h = \frac{h'}{1-e'}\;.\eas Inverting and performing the change of variables, we see that $\lim_{f' \rightarrow 0} I(W_2) = \lim_{f \rightarrow 0} \frac{e}{1-e} I(W_1)$. A similar calculation shows that $\lim_{d'' \rightarrow 0} I(W_3) = \lim_{f \rightarrow 0} \frac{-1}{1-e} I(W_1)$. Thus, in the appropriate limit, \bas \lim_{f \rightarrow 0} I(W_1) + \lim_{f' \rightarrow 0} I(W_2) + \lim_{d'' \rightarrow 0} I(W_3) = 0\;.\eas  \end{proof} \todo{actually check these calculations, minus signs, etc.}
+
+The last case to consider consists of understanding the poles shared between the diagrams with the following configureations: \bmls \textrm{Config 4} = \begin{tikzpicture}[rotate=67.5,baseline=(current bounding box.east)]
+	 \begin{scope}
+	\drawWLD{10}{1.5}
+	\drawnumbers
+	\drawprop{2}{0}{8}{1}
+	\drawprop{3}{0}{8}{-1}
+		\end{scope}
+	\end{tikzpicture} \quad ; \quad \textrm{Config 5} = \begin{tikzpicture}[rotate=67.5,baseline=(current bounding box.east)]
+	\begin{scope}
+	\drawWLD{10}{1.5}
+	\drawnumbers
+	\drawprop{2}{-1}{8}{0}
+	\drawprop{2}{1}{4}{0}
+		\end{scope}
+	\end{tikzpicture} \\ \textrm{Config 6} = \begin{tikzpicture}[rotate=67.5,baseline=(current bounding box.east)]
+	\begin{scope}
+	\drawWLD{10}{1.5}
+	\drawnumbers
+	\drawprop{3}{1}{8}{0}
+	\drawprop{3}{-1}{1}{0}
+		\end{scope}
+	\end{tikzpicture}\emls 
+
+\begin{lem}
+Let $W_4$, $W_5$ and $W_6$ be admissible Wilson loop diagrams that are identical except for the fact that the diagram $W_i$ cotains the pair of propagators shown in $\textrm{Config i}$ above. Let $p = (i, j)$ and $q = (i, k)$ with $k = j+1$. Then \bas \lim_{(c_{p,i}c_{q, i+1} - c_{p, i+1}, c_{q, i}) \rightarrow 0} I(W_4) + \lim_{c_{r, j+3} \rightarrow 0}I(W_5) + \lim_{c_{r, k-2} \rightarrow 0}I(W_6) = 0\;.\eas \end{lem}
+\begin{proof}
+This proof follows similarly to the above. Write \bas C_*(W_4) = \begin{bmatrix}1 & \ldots & a &b &\ldots & c & d & 0 & \ldots \\  1 & \dots &  ae &be + f  & \ldots &0 & g & h & \ldots    \end{bmatrix}  \\ C_*(W_5) = \begin{bmatrix}1 & \ldots & a' &b' &\ldots & c' & d' & 0 & 0& \ldots \\  1 & \dots &  0&0  & \ldots &c'e' & d'e' +f' & g' & h' & \ldots    \end{bmatrix} \\ C_*(W_6) = \begin{bmatrix}1 & \ldots & 0 &0 &\ldots & a'' & b'' & c''g'' & h'' c'' + d'' & \ldots \\  1 & \dots &  e'' & f''  & \ldots &0&0 & g'' & h'' & \ldots    \end{bmatrix} \;. \eas We consider the change of variables defined by the product \bas \begin{bmatrix}1 & 0 \\ \frac{-e'}{1-e'} & \frac{1}{1-e'} \end{bmatrix} C_*(W_5)  \quad \textrm{ and } \quad \begin{bmatrix}\frac{1}{1-c''} & \frac{-c''}{1-c''} \\ 0 & 1 \end{bmatrix} C_*(W_6) \;.\eas Then the same types of calculations as in Lemma \ref{??} shows that $ \lim_{c_{r, k-2} \rightarrow 0}I(W_6)  =  \lim_{f \rightarrow 0} \frac{-1}{1-e} I(W_4) $ and $\lim_{c_{r, k-2} \rightarrow 0}I(W_5)  =  \lim_{f \rightarrow 0} \frac{e}{1-e} I(W_4) $, proving the result.
+\end{proof}
+
+
+\end{appendices}
+
+
+
+
+
+
+
+
+\end{document}
