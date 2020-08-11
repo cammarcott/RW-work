@@ -1,0 +1,9 @@
+#files types to ignore#
+#######################
+*.aux
+*.log
+*.gz
+
+#also ignore the .pdf#
+######################
+spurious poles.pdf
