@@ -468,7 +468,7 @@ All the factors of $R(W)$ vanish on the boundary of $\Sigma(W)$.
 
 
 \begin{proof}
-Let $\{I_1, I_2, \dots, I_k\}$ be the Grassmann necklace associated $\Sigma(W)$. From (THEOREM NUMBER) in \cite{generalcombinatoricsII},
+Let $\{I_1, I_2, \dots, I_k\}$ be the Grassmann necklace associated $\Sigma(W)$. From Proposition 5.3 in \cite{generalcombinatoricsII},
 %
 \begin{displaymath}
 R(W) = \mathrm{rad}\left(\prod_{i = 1}^{k} \Delta_{I_i}\right).
@@ -491,8 +491,8 @@ G(W) \setminus \Sigma(W) \subset \overline{\Sigma(W)} \setminus \Sigma(W). \qedh
 This example illustrates the differences between the sets $G(W)$, $\Sigma(W)$, and $\overline{\Sigma(W)}$. Let
 \bas C(W) =
 \begin{bmatrix}
-c_{p,1} & c_{p,2} & c_{p,3} &c_{p,4} & 0 & 0 \\
-c_{q,1} & c_{q,2} &c_{q,3} & c_{q,4} &  0 & 0
+c_{p,1} & c_{p,2} & 0 &c_{p,4} & c_{p,5} & 0 \\
+c_{q,1} & c_{q,2} & 0 & 0 & c_{q,5} & c_{q,6}
 \end{bmatrix}.\eas
 \noindent
 Let $\Sigma(W)$ and $\overline{\Sigma(W)}$ be the associated open and closed positroid cells respectively.
@@ -500,7 +500,7 @@ Let $\Sigma(W)$ and $\overline{\Sigma(W)}$ be the associated open and closed pos
 The point represented by
 \begin{displaymath}
 \begin{bmatrix}
-1 & 1 & 1 & 1 & 0 & 0 \\
+1 & 1 & 0 & 1 & 1 & 0 \\
 1 & 1 & 0 & 0 & 1 & 1
 \end{bmatrix}
 \end{displaymath}
@@ -516,24 +516,23 @@ vanishes at this point.
 The point represented by
 \begin{displaymath}
 \begin{bmatrix}
-1 & 0 & 1 & 1 & -1 & -1 \\
-0 & 1 & 1 & 1 & 1 & 1
+1 & 0 & 0 & 1 & 0 & 1 \\
+0 & 1 & 0 & 1 & 1 & 1
 \end{bmatrix}
 \end{displaymath}
 \noindent
-is in $\Sigma(W) \setminus G(W)$.
+is in $\Sigma(W) \setminus G(W)$ since there is no point in $G(W)$ where $\Delta_{45},\Delta_{56} \neq 0$ and $\Delta_{46} = 0$.
 
 The point represented by
 \begin{displaymath}
 \begin{bmatrix}
-1 & 1 & 1 & 1 & 1 & 1 \\
-0 & 1 & 1 & 1 & 1 & 1
+0 & 0 & 0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 0 & 0 & 1
 \end{bmatrix}
 \end{displaymath}
 \noindent
 is in $\overline{\Sigma(W)} \setminus \Sigma(W) \cup G(W)$.
 \end{eg}
-
 
 This fact has been shown explicity in the case of $n = 4$ and $k=2$, however, has not been shown in general.
 
